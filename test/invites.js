@@ -479,3 +479,110 @@ describe('update channel - invites', function() {
 		await Promise.all([channel.inviteMembers([invitedId]), evtReceived]);
 	});
 });
+
+describe('query only memberships and accepted invites', function() {
+	let channel;
+	let client;
+	let creatorId = uuidv4();
+	let member = uuidv4();
+	let invitedId = uuidv4();
+	let inviteRejectedId = uuidv4();
+	let invitePendingId = uuidv4();
+
+	before(async function() {
+		await createUsers([
+			creatorId,
+			invitedId,
+			inviteRejectedId,
+			invitePendingId,
+			member,
+		]);
+		client = await getTestClientForUser(creatorId);
+		channel = client.channel('messaging', uuidv4(), {
+			members: [creatorId, member],
+		});
+		await channel.create();
+	});
+
+	it('invite after channel creation', async function() {
+		const inviteResp = await channel.inviteMembers([
+			invitedId,
+			inviteRejectedId,
+			invitePendingId,
+		]);
+		expect(inviteResp.members.length).to.be.equal(5);
+		expect(inviteResp.members[0].user_id).to.be.equal(creatorId);
+		expect(inviteResp.members[1].user_id).to.be.equal(member);
+		expect(inviteResp.members[2].invited).to.be.true;
+		expect(inviteResp.members[3].invited).to.be.true;
+		expect(inviteResp.members[4].invited).to.be.true;
+	});
+
+	it('one accept the invite', async function() {
+		const invitedUserClient = await getTestClientForUser(invitedId);
+		const invites = await invitedUserClient.queryChannels(
+			{ invite: 'pending' },
+			{},
+			{},
+		);
+		expect(invites.length).to.be.equal(1);
+		await invites[0].acceptInvite();
+	});
+	it('one rejects the invite', async function() {
+		const inviteRejectedIdClient = await getTestClientForUser(inviteRejectedId);
+		const invites = await inviteRejectedIdClient.queryChannels(
+			{ invite: 'pending' },
+			{},
+			{},
+		);
+		expect(invites.length).to.be.equal(1);
+		await invites[0].rejectInvite();
+	});
+
+	it('query only membership and accepted invites', async function() {
+		const inviteRejectedIdClient = await getTestClientForUser(inviteRejectedId);
+		let channels = await inviteRejectedIdClient.queryChannels(
+			{
+				members: { $in: [inviteRejectedId] },
+				$and: [{ invite: { $ne: 'pending' } }, { invite: { $ne: 'rejected' } }],
+			},
+			{},
+			{},
+		);
+		expect(channels.length).to.be.equal(0);
+
+		const acceptedRejectedIdClient = await getTestClientForUser(invitedId);
+		channels = await acceptedRejectedIdClient.queryChannels(
+			{
+				members: { $in: [invitedId] },
+				$and: [{ invite: { $ne: 'pending' } }, { invite: { $ne: 'rejected' } }],
+			},
+			{},
+			{},
+		);
+		expect(channels.length).to.be.equal(1);
+
+		const pendingClient = await getTestClientForUser(invitePendingId);
+		channels = await pendingClient.queryChannels(
+			{
+				members: { $in: [invitePendingId] },
+				$and: [{ invite: { $ne: 'pending' } }, { invite: { $ne: 'rejected' } }],
+			},
+			{},
+			{},
+		);
+		expect(channels.length).to.be.equal(0);
+
+		const memverClient = await getTestClientForUser(member);
+		channels = await memverClient.queryChannels(
+			{
+				members: { $in: [member] },
+				$and: [{ invite: { $ne: 'pending' } }, { invite: { $ne: 'rejected' } }],
+			},
+			{},
+			{},
+		);
+		expect(channels.length).to.be.equal(1);
+		expect(channels.length).to.be.equal(1);
+	});
+});
