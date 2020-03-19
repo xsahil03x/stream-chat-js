@@ -176,6 +176,20 @@ describe('mute channels', function() {
 		expect(resp[0].id).to.be.equal(mutedChannelId);
 	});
 
+	it('query mutes (server side)', async function() {
+		let client = getTestClient(true);
+		const resp = await client.queryChannels(
+			{
+				members: { $in: [user1] },
+				muted: true,
+			},
+			{},
+			{ user_id: user1 },
+		);
+		expect(resp.length).to.be.equal(1);
+		expect(resp[0].id).to.be.equal(mutedChannelId);
+	});
+
 	it('exclude muted channels', async function() {
 		const resp = await client1.queryChannels({
 			muted: false,
