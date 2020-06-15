@@ -90,7 +90,7 @@ describe('Presence', function() {
 		});
 	});
 
-	describe.only('Channel online counts', function() {
+	describe('Channel online counts', function() {
 		it('stopWatching and watcher count', async function() {
 			// user1 is watching this channel
 			const id = 'christmas' + uuidv4();
@@ -101,7 +101,6 @@ describe('Presence', function() {
 			const results = [];
 			const eventPromise = new Promise(resolve => {
 				b.on('all', e => {
-					console.log(e);
 					expect(e.watcher_count).to.equal(b.state.watcher_count);
 					results.push([e.watcher_count, e.user.id]);
 					// expect to see thierry join, james join and james leave
