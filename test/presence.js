@@ -13,6 +13,7 @@ import {
 	createEventWaiter,
 } from './utils';
 import uuidv4 from 'uuid/v4';
+import {StreamChat} from "../src";
 
 const expect = chai.expect;
 
@@ -562,3 +563,21 @@ describe('Count Guest users using state', function() {
 		expect(channelResponse.watcher_count).to.be.equal(1);
 	});
 });
+
+describe.only('users with empty created_at', function() {
+	it('create a user without created_at',async function (){
+		let c =  new StreamChat('nxgahtujjakb','9mbpm5mar3p9cc4anx939j6qxzyebjjx7pdhpg2xkah4e7b4ce325gxattjvtshp')
+   await c.setUser({id:'aV_333Z0r'},c.createToken('aV_333Z0r'))
+		let channel = c.channel('messaging','eQTD1jK9YWNa5CR_bn87c-aV_333Z0r-dm')
+		let resp = await channel.watch()
+
+
+		 c =  new StreamChat('nxgahtujjakb','9mbpm5mar3p9cc4anx939j6qxzyebjjx7pdhpg2xkah4e7b4ce325gxattjvtshp')
+		await c.setUser({id:'aV_333Z0r'},c.createToken('aV_333Z0r'))
+		 channel = c.channel('messaging','eQTD1jK9YWNa5CR_bn87c-aV_333Z0r-dm')
+		 resp = await channel.watch({watchers:{limit:10}})
+
+
+	})
+
+})

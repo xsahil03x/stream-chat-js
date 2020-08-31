@@ -974,6 +974,7 @@ export class Channel<
 
     const combined = { ...defaultOptions, ...options };
     const state = await this.query(combined);
+    console.log(JSON.stringify(state))
     this.initialized = true;
     this._initializeState(state);
     this.data = state.channel;
