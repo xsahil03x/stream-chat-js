@@ -42,10 +42,6 @@ describe.only('static location sharing', function() {
 		await createUsers([userID1, userID2]);
 		client1 = await getTestClientForUser(userID1);
 		client2 = await getTestClientForUser(userID2);
-		channel1 = client1.channel('messaging', uuidv4(), {
-			members: [userID1, userID2],
-		});
-		await channel1.create();
 	});
 
 	const locationAttachment = {
@@ -57,15 +53,20 @@ describe.only('static location sharing', function() {
 		},
 	};
 
+	it('user1 creates a channel', async function() {
+		channel1 = client1.channel('messaging', uuidv4(), {
+			members: [userID1, userID2],
+		});
+		await channel1.create();
+	});
+
 	let messageEventPromise;
 
 	it('user2 joins the channel', async function() {
 		channel2 = client2.channel('messaging', channel1.id);
 		messageEventPromise = new Promise((resolve, reject) => {
 			channel2.on(event => {
-				console.log('event', event);
 				if (event.type == 'message.new') {
-					console.log('Got event!');
 					resolve(event);
 				}
 			});
@@ -96,5 +97,56 @@ describe.only('static location sharing', function() {
 		});
 
 		expect(evt.message.attachments).to.eql([locationAttachment]);
+	});
+
+	it('user sends invalid latitude', async function() {
+		const msg = {
+			text: "Here's the location of the building.",
+			attachments: [
+				{
+					type: 'location',
+					location: {
+						lat: 91,
+						lon: 22.1,
+						accuracy: 0,
+					},
+				},
+			],
+		};
+		await expectHTTPErrorCode(400, channel1.sendMessage(msg));
+	});
+
+	it('user sends invalid longitude', async function() {
+		const msg = {
+			text: "Here's the location of the building.",
+			attachments: [
+				{
+					type: 'location',
+					location: {
+						lat: 0,
+						lon: 181.1,
+						accuracy: 0,
+					},
+				},
+			],
+		};
+		await expectHTTPErrorCode(400, channel1.sendMessage(msg));
+	});
+
+	it('user sends invalid accuracy', async function() {
+		const msg = {
+			text: "Here's the location of the building.",
+			attachments: [
+				{
+					type: 'location',
+					location: {
+						lat: 0,
+						lon: 0,
+						accuracy: 2000,
+					},
+				},
+			],
+		};
+		await expectHTTPErrorCode(400, channel1.sendMessage(msg));
 	});
 });
