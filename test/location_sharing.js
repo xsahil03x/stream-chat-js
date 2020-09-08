@@ -101,7 +101,6 @@ describe.only('static location sharing', function() {
 
 	it('user sends invalid latitude', async function() {
 		const msg = {
-			text: "Here's the location of the building.",
 			attachments: [
 				{
 					type: 'location',
@@ -118,7 +117,6 @@ describe.only('static location sharing', function() {
 
 	it('user sends invalid longitude', async function() {
 		const msg = {
-			text: "Here's the location of the building.",
 			attachments: [
 				{
 					type: 'location',
@@ -135,7 +133,6 @@ describe.only('static location sharing', function() {
 
 	it('user sends invalid accuracy', async function() {
 		const msg = {
-			text: "Here's the location of the building.",
 			attachments: [
 				{
 					type: 'location',
