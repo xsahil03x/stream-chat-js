@@ -142,8 +142,11 @@ describe('Auto translation usage', function() {
 	const channelId = uuidv4();
 	let frenchClient;
 	let englishClient;
+	let noLangClient;
+	let channel;
 	const frenchUser = { id: uuidv4() };
 	const englishUser = { id: uuidv4() };
+	const otherUser = { id: uuidv4() };
 	let messageId;
 
 	before(async () => {
@@ -154,10 +157,11 @@ describe('Auto translation usage', function() {
 		englishClient = await getTestClientForUser(englishUser.id, null, {
 			language: 'en',
 		});
+		noLangClient = await getTestClientForUser(otherUser.id);
 
-		const channel = serverSideClient.channel('messaging', channelId, {
+		channel = serverSideClient.channel('messaging', channelId, {
 			auto_translation_enabled: true,
-			members: [frenchUser.id, englishUser.id],
+			members: [frenchUser.id, englishUser.id, otherUser.id],
 			created_by: { language: 'fr', ...frenchUser },
 		});
 
@@ -209,5 +213,36 @@ describe('Auto translation usage', function() {
 		await expect(p).to.be.rejectedWith(
 			'StreamChat error code 4: SendMessage failed with error: "message.i18n is a reserved field',
 		);
+	});
+
+	it('set channel.auto_translation_language to german', async () => {
+		const response = await channel.update({
+			auto_translation_enabled: true,
+			auto_translation_language: 'de',
+		});
+		expect(response.channel.auto_translation_enabled).to.eql(true);
+		expect(response.channel.auto_translation_language).to.eql('de');
+	});
+
+	it('add a message from a french user', async () => {
+		const chan = frenchClient.channel('messaging', channelId);
+		await chan.query();
+		const response = await chan.sendMessage({
+			text: 'Mon dieu',
+		});
+		expect(response.message.i18n.en_text).to.eql('My God');
+		expect(response.message.i18n.fr_text).to.eql('Mon dieu');
+		expect(response.message.i18n.de_text).to.eql('Mein Gott');
+	});
+
+	it('add a message in italian from a user without a language set', async () => {
+		const chan = noLangClient.channel('messaging', channelId);
+		await chan.query();
+		const response = await chan.sendMessage({
+			text: 'Ciao mamma',
+		});
+		expect(response.message.i18n.en_text).to.eql('Hi Mom');
+		expect(response.message.i18n.de_text).to.eql('Hallo Mama');
+		expect(response.message.i18n.it_text).to.eql('Ciao mamma');
 	});
 });
