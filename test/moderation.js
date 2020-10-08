@@ -41,6 +41,7 @@ describe('block list moderation CRUD', () => {
 	});
 
 	it('create a new blocklist', async () => {
+		await sleep(100);
 		const words = ['fudge', 'cream', 'sugar'];
 		await client.createBlockList({
 			name: 'no-cakes',
@@ -88,9 +89,11 @@ describe('block list moderation CRUD', () => {
 	});
 
 	it('should block messages that match the blocklist', async () => {
+		await sleep(500);
 		const userClient = await getTestClientForUser('tommaso');
 		const chan = userClient.channel('messaging', 'caaakes');
 		await chan.watch();
+		await sleep(500);
 		const response = await chan.sendMessage({
 			text: 'put some sugar and fudge on that!',
 		});
