@@ -1076,7 +1076,6 @@ describe('App configs', function () {
 				);
 			});
 			it('Adding good server key', async function () {
-				await sleep(1000);
 				await client.updateAppSettings({
 					firebase_config: {
 						server_key:

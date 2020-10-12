@@ -175,7 +175,9 @@ describe('Webhooks', function () {
 			promises.waitForEvents('message.new'),
 			chan.sendMessage({ text: uuidv4(), user: { id: tommasoID } }),
 		]);
+		//await sleep(1000);
 		const event = events[0];
+		// console.log(events);
 		expect(event).to.not.be.null;
 		expect(event.type).to.eq('message.new');
 		expect(event.channel_type).to.eq(chan.type);

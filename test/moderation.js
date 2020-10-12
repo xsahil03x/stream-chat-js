@@ -41,7 +41,6 @@ describe('block list moderation CRUD', () => {
 	});
 
 	it('create a new blocklist', async () => {
-		await sleep(100);
 		const words = ['fudge', 'cream', 'sugar'];
 		await client.createBlockList({
 			name: 'no-cakes',
@@ -82,10 +81,11 @@ describe('block list moderation CRUD', () => {
 	});
 
 	it('use the blocklist for a channel type', async () => {
-		await client.updateChannelType('messaging', {
+		const response = await client.updateChannelType('messaging', {
 			blocklist: 'no-cakes',
 			blocklist_behavior: 'block',
 		});
+		console.log(response);
 	});
 
 	it('should block messages that match the blocklist', async () => {
@@ -95,6 +95,7 @@ describe('block list moderation CRUD', () => {
 		const response = await chan.sendMessage({
 			text: 'put some sugar and fudge on that!',
 		});
+		console.log(response);
 		expect(response.message.text).to.eql('Automod blocked your message');
 		expect(response.message.type).to.eql('error');
 	});
