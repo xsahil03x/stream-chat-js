@@ -100,7 +100,9 @@ There are two main areas of settings where mistakes can be made - permission set
 Under the settings for your application, be sure to make sure Permission Checks are not disabled. Stream is built with a complex yet flexible permission system that checks if a user is able to perform certain actions based on their user role (think channel member vs moderator). Disabling this permission layer opens your application up to vulnerabilities, such as a user modifying another user's messages. 
 
 ### Channel Settings
-Within each channel type (yes, these settings are configurable on a channel type basis), you are able to toggle on certain events. This translates to the different events that are transmitted through the websocket connections, and although increasing the featureset of a channel, also increase the load on the client. So, for your livestreaming type channels, you will probably want to disable features such as uploads, read receipts, and typing indicators. 
+Within each channel type (yes, these settings are configurable on a channel type basis), you are able to toggle on certain events. This translates to the different events that are transmitted through the websocket connections, and although increasing the featureset of a channel, also increase the load on the client.
+
+**So, for your livestreaming type channels, you will probably want to disable features such as uploads, read receipts, and typing indicators.**
 
 ## queryChannels filters
 A Channel list in an application can often form the backbone of the chat experience, and be one of the first views that a user sees upon opening a chat experience. Although not entirely pertinent for a livestream situation, it is important to run a filter that is optimal if it is needed. 
