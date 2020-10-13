@@ -13,6 +13,7 @@ import {
 	createEventWaiter,
 } from './utils';
 import { v4 as uuidv4 } from 'uuid';
+import { sleep } from '../src/utils';
 
 const expect = chai.expect;
 
@@ -161,6 +162,7 @@ describe('Presence', function () {
 			// Watching client goes offline
 			await james.disconnect(5000);
 			await eventPromise;
+			await sleep(1000);
 		});
 	});
 
@@ -194,6 +196,7 @@ describe('Presence', function () {
 			const now = new Date();
 			const diffInMinutes = (now - last_active) / 1000 / 60;
 			expect(diffInMinutes).to.be.below(1);
+			await sleep(1000);
 		});
 
 		it('should be offline after disconnect', async function () {
@@ -205,6 +208,7 @@ describe('Presence', function () {
 			expect(timmy.id).to.equal(userID);
 			expect(timmy.status).to.equal('mystatus');
 			expect(timmy.online).to.equal(false);
+			await sleep(1000);
 		});
 
 		it('Query Channel and Presence', async function () {
@@ -243,6 +247,7 @@ describe('Presence', function () {
 			);
 			await getTestClientForUser(userID, 'going to watch a movie');
 			await eventReceived;
+			await sleep(1000);
 		});
 
 		it('Query Users and Presence the other one', function (done) {
@@ -270,6 +275,7 @@ describe('Presence', function () {
 				expect(user1Client.state.users.jessica.online).to.equal(false);
 				// jessica goes online should trigger an event
 				await getTestClientForUser('jessica', 'sayhi');
+				await sleep(1000);
 			}
 			runAndLogPromise(runTest);
 		});
@@ -303,6 +309,7 @@ describe('Presence', function () {
 				expect(r[0].state.members[paulID].user.online).to.equal(false);
 				expect(user1Client.state.users[paulID].online).to.equal(false);
 				await getTestClientForUser(paulID, 'rallying fremen');
+				await sleep(1000);
 			}
 			runAndLogPromise(runTest);
 		});
