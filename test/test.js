@@ -6,7 +6,7 @@ import chaiAsPromised from 'chai-as-promised';
 import chaiLike from 'chai-like';
 import Immutable from 'seamless-immutable';
 import { StreamChat, decodeBase64, encodeBase64 } from '../src';
-import { expectHTTPErrorCode, getTestClientWithWarmUp } from './utils';
+import { expectHTTPErrorCode, getTestClientWithWarmUp, createEventWaiter } from './utils';
 import fs from 'fs';
 import assertArrays from 'chai-arrays';
 const mockServer = require('mockttp').getLocal();
@@ -20,6 +20,7 @@ import {
 	sleep,
 } from './utils';
 import { v4 as uuidv4 } from 'uuid';
+import { time } from 'console';
 
 const expect = chai.expect;
 chai.use(assertArrays);
@@ -1488,57 +1489,159 @@ describe('Chat', () => {
 
 				expect(response.message.magic).to.equal(42);
 				expect(response.message.algo).to.equal('randomforest');
+				await sleep(1000);
 			});
 
-			it('Delete a Chat message', function (done) {
-				async function runTest() {
-					const channel = authClient.channel('messaging', uuidv4());
-					await channel.watch();
+			it('Message throttle - prep', async () => {
+				await sleep(8000);
+			});
 
-					const text = 'testing the delete flow, does it work?';
-					const data = await channel.sendMessage({ text });
-					expect(data.message.text).to.equal(text);
+			it('Message throttle', async () => {
+				const channel = authClient.channel('messaging', uuidv4());
+				await channel.watch();
+				const text = 'asd';
 
-					channel.on('message.deleted', (event) => {
-						expect(event.message.deleted_at).to.not.be.null;
-						expect(event.message.type).to.be.equal('deleted');
-						expect(event.hard_delete).to.be.undefined;
-						expect(channel.state.messages).to.be.deep.equal([
-							channel.state.messageToImmutable(event.message),
-						]);
-						done();
-					});
-					const deleteResponse = await authClient.deleteMessage(
-						data.message.id,
-					);
-					expect(deleteResponse.message.deleted_at).to.not.be.null;
-				}
-				runTest().catch((exc) => {
-					done(exc);
+				await sleep(1000);
+
+				let received = 0;
+
+				channel.on('message.new', (e) => {
+					received++;
 				});
+
+				let promises = [
+					channel.sendMessage({ text }),
+					channel.sendMessage({ text }),
+					channel.sendMessage({ text }),
+					channel.sendMessage({ text }),
+					channel.sendMessage({ text }),
+					channel.sendMessage({ text }),
+					channel.sendMessage({ text }),
+					channel.sendMessage({ text }),
+					channel.sendMessage({ text }),
+					channel.sendMessage({ text }),
+					channel.sendMessage({ text }),
+					channel.sendMessage({ text }),
+					channel.sendMessage({ text }),
+					channel.sendMessage({ text }),
+					channel.sendMessage({ text }),
+					channel.sendMessage({ text }),
+					channel.sendMessage({ text }),
+				];
+
+				await Promise.all(promises);
+				await sleep(1100);
+				expect(received).to.eql(15);
+
+				received = 0;
+				promises = [
+					channel.sendMessage({ text }),
+					channel.sendMessage({ text }),
+					channel.sendMessage({ text }),
+					channel.sendMessage({ text }),
+					channel.sendMessage({ text }),
+					channel.sendMessage({ text }),
+				];
+
+				await Promise.all(promises);
+				await sleep(1100);
+				expect(received).to.eql(5);
+
+				received = 0;
+				promises = [channel.sendMessage({ text })];
+				await Promise.all(promises);
+				await sleep(1100);
+				expect(received).to.eql(1);
+
+				received = 0;
+				promises = [channel.sendMessage({ text })];
+				await Promise.all(promises);
+				await sleep(1100);
+				expect(received).to.eql(1);
+
+				received = 0;
+				promises = [channel.sendMessage({ text })];
+				await Promise.all(promises);
+				await sleep(1100);
+				expect(received).to.eql(1);
+
+				received = 0;
+				promises = [channel.sendMessage({ text })];
+				await Promise.all(promises);
+				await sleep(1100);
+				expect(received).to.eql(1);
+
+				await sleep(1000);
+
+				received = 0;
+				promises = [channel.sendMessage({ text }), channel.sendMessage({ text })];
+				await Promise.all(promises);
+				await sleep(1100);
+				expect(received).to.eql(2);
+
+				received = 0;
+				promises = [
+					channel.sendMessage({ text }),
+					channel.sendMessage({ text }),
+					channel.sendMessage({ text }),
+					channel.sendMessage({ text }),
+					channel.sendMessage({ text }),
+					channel.sendMessage({ text }),
+					channel.sendMessage({ text }),
+					channel.sendMessage({ text }),
+					channel.sendMessage({ text }),
+					channel.sendMessage({ text }),
+				];
+				await Promise.all(promises);
+				await sleep(1100);
+				expect(received).to.eql(10);
 			});
 
-			it('Hard Delete a Chat message', function (done) {
-				(async () => {
-					const channel = authClient.channel('messaging', uuidv4());
-					await channel.watch();
+			it('Delete a Chat message', async () => {
+				await sleep(1000);
 
-					channel.on('message.deleted', (event) => {
-						expect(event.message.deleted_at).to.not.be.null;
-						expect(event.message.type).to.be.equal('deleted');
-						expect(event.hard_delete).to.be.true;
-						expect(channel.state.messages).to.be.deep.equal([]);
-						done();
-					});
+				const channel = authClient.channel('messaging', uuidv4());
+				await channel.watch();
 
-					const data = await channel.sendMessage({ text: 'hard delete event' });
-					await serverAuthClient.deleteMessage(data.message.id, true);
-				})().catch(done);
+				const waiter = createEventWaiter(channel, 'message.deleted');
+
+				const text = 'testing the delete flow, does it work?';
+				const data = await channel.sendMessage({ text });
+				expect(data.message.text).to.equal(text);
+
+				const deleteResponse = await authClient.deleteMessage(data.message.id);
+				expect(deleteResponse.message.deleted_at).to.not.be.null;
+
+				const events = await waiter;
+				expect(events[0].message.deleted_at).to.not.be.null;
+				expect(events[0].message.type).to.be.equal('deleted');
+				expect(events[0].hard_delete).to.be.undefined;
+				expect(channel.state.messages).to.be.deep.equal([
+					channel.state.messageToImmutable(events[0].message),
+				]);
+			});
+
+			it('Hard Delete a Chat message', async () => {
+				await sleep(1000);
+
+				const channel = authClient.channel('messaging', uuidv4());
+				await channel.watch();
+
+				const waiter = createEventWaiter(channel, 'message.deleted');
+
+				const data = await channel.sendMessage({ text: 'hard delete event' });
+				await serverAuthClient.deleteMessage(data.message.id, true);
+
+				const events = await waiter;
+				expect(events[0].message.deleted_at).to.not.be.null;
+				expect(events[0].message.type).to.be.equal('deleted');
+				expect(events[0].hard_delete).to.be.true;
+				expect(channel.state.messages).to.be.deep.equal([]);
 			});
 
 			it('Add a Chat Message with an attachment', async () => {
 				const text = 'testing attachment';
-				const data = await channel.sendMessage({ text });
+				await channel.sendMessage({ text });
 			});
 
 			it.skip('Enrichment', async () => {
@@ -1956,6 +2059,7 @@ describe('Chat', () => {
 			const state = await conversation.query();
 
 			expect(state.channel.member_count).to.equal(2);
+			await sleep(1000);
 		});
 
 		it('Change the name and set a custom color', (done) => {
@@ -2104,6 +2208,7 @@ describe('Chat', () => {
 
 		it('Typing Stop', function (done) {
 			(async () => {
+				await sleep(1000);
 				eventChannel.on('typing.stop', (event) => {
 					// start, stop
 					expect(event.parent_id).to.be.equal(undefined);
