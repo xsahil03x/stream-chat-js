@@ -93,8 +93,41 @@ useEffect(() => {
 
 ```
 
-## Permission settings
+## Application Settings
+There are two main areas of settings where mistakes can be made - permission settings, and channel feature settings. These can be changed through the Stream Dashboard.
+
+### Permission settings
+Under the settings for your application, be sure to make sure Permission Checks are not disabled. Stream is built with a complex yet flexible permission system that checks if a user is able to perform certain actions based on their user role (think channel member vs moderator). Disabling this permission layer opens your application up to vulnerabilities, such as a user modifying another user's messages. 
+
+### Channel Settings
+Within each channel type (yes, these settings are configurable on a channel type basis), you are able to toggle on certain events. This translates to the different events that are transmitted through the websocket connections, and although increasing the featureset of a channel, also increase the load on the client. So, for your livestreaming type channels, you will probably want to disable features such as uploads, read receipts, and typing indicators. 
 
 ## queryChannels filters
+A Channel list in an application can often form the backbone of the chat experience, and be one of the first views that a user sees upon opening a chat experience. Although not entirely pertinent for a livestream situation, it is important to run a filter that is optimal if it is needed. 
+
+*exampels of slow queries*
 
 ## Rate limits
+Rate limits are in place to protect our API from misuse, to protect the other applications in a shared infrastructure environment, and to protect the user from integration errors. Although rate limits can be flexible on Enterprise plans, it is important to structure your application within the limits of the rate limits are described [here] (https://getstream.io/chat/docs/rate_limits/?language=js). Some important points
+
+- Rate limits are application wide and per user. Application rate limits refer to the number of API requests a single application can make, whereas user rate limits are the number of API calls a single user can make (60/min/endpoint).
+- Many of our endpoints can be accessed using batch methods, for example, adding members to a channel. This rate limit is relatively low, owing to the heavy work the API must to do update the channel for all memebers. Alleviate some of this by adding or removing up to 100 members are once. 
+- Cache API responses if necessary and only query when necessary.
+
+## Adding Users to the Application and Channels 
+A common bottleneck for API calls is both adding users to the application and adding users to channels. If possible, it can be beneficial to add users in batches before events start. 
+
+## Excessive API calls to /Channel
+There are a number of ways with the Stream Chat API to hit the /channel endpoint, some of which will often be unecessary 
+
+``` js
+
+// queryChannels hits the /channels endpoint with a query
+
+// channel.create
+// channel.watch
+// channel.query
+
+// use querychannels to also do .watch?
+
+```
