@@ -1493,7 +1493,7 @@ describe('Chat', () => {
 			});
 
 			it('Message throttle - prep', async () => {
-				await sleep(8000);
+				await sleep(10000);
 			});
 
 			it('Message throttle', async () => {
