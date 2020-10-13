@@ -1531,7 +1531,7 @@ describe('Chat', () => {
 
 				await Promise.all(promises);
 				await sleep(1100);
-				expect(received).to.eql(15);
+				expect(received).to.eql(10);
 
 				received = 0;
 				promises = [
