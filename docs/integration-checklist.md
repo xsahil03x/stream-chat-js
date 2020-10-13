@@ -30,7 +30,7 @@ In above code, you have actually created 2 different active websocket connection
 
 ### Call `chatClient.disconnect` to avoid orphan connections
 
-Its important to do cleanup when chatClient is not needed anymore. Some typical examples of bad integration are as following:
+If for some reason, you decide to make multiple calls to setUser on frontend or server side, its important to do cleanup when chatClient is not needed anymore. Some typical examples of bad integration are as following:
 
 #### Node Example
 
