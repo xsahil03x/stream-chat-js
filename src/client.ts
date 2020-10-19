@@ -339,8 +339,8 @@ export class StreamChat<
     this.anonymous = false;
 
     this.setUserPromise = Promise.all([setTokenPromise, wsPromise])
-      .then(result => result[1]) // We only return connection promise;
-      .catch(e => {
+      .then((result) => result[1]) // We only return connection promise;
+      .catch((e) => {
         throw e;
       });
 
@@ -603,7 +603,7 @@ export class StreamChat<
     this.listeners[key].push(callback);
     return {
       unsubscribe: () => {
-        this.listeners[key] = this.listeners[key].filter(el => el !== callback);
+        this.listeners[key] = this.listeners[key].filter((el) => el !== callback);
       },
     };
   }
@@ -680,7 +680,7 @@ export class StreamChat<
     this.logger('info', `Removing listener for ${key} event`, {
       tags: ['event', 'client'],
     });
-    this.listeners[key] = this.listeners[key].filter(value => value !== callback);
+    this.listeners[key] = this.listeners[key].filter((value) => value !== callback);
   }
 
   _logApiRequest(
@@ -911,7 +911,7 @@ export class StreamChat<
       if (event.user?.id === this.userID) {
         this.user = this.user && { ...this.user, ...event.user };
         // Updating only available properties in _user object.
-        Object.keys(event.user).forEach(function(key) {
+        Object.keys(event.user).forEach(function (key) {
           if (client._user && key in client._user) {
             // @ts-expect-error
             client._user[key] = event.user[key];
@@ -938,7 +938,7 @@ export class StreamChat<
 
   _muteStatus(cid: string) {
     let muteStatus;
-    this.mutedChannels.forEach(function(mute) {
+    this.mutedChannels.forEach(function (mute) {
       if (mute.channel?.cid === cid) {
         let muted = true;
         if (mute.expires) {
@@ -1860,7 +1860,7 @@ export class StreamChat<
       'user',
     ];
 
-    reservedMessageFields.forEach(function(item) {
+    reservedMessageFields.forEach(function (item) {
       if (clonedMessage[item] != null) {
         delete clonedMessage[item];
       }

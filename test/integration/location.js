@@ -17,7 +17,7 @@ function equalLocationInAttachment(msg, loc) {
 	expect(msg.attachments[0].location.live).to.equal(loc.live);
 }
 
-describe('Location sharing', function() {
+describe('Location sharing', function () {
 	let alice, bob, client, bobClient, channel, serverClient;
 
 	before(async () => {
@@ -42,7 +42,7 @@ describe('Location sharing', function() {
 		await channel.delete();
 	});
 
-	describe('When Alice shares a static location', function() {
+	describe('When Alice shares a static location', function () {
 		it('should properly send the message and return it with a location attachment', async () => {
 			let loc = {
 				lat: 52.363811,
@@ -56,7 +56,7 @@ describe('Location sharing', function() {
 		});
 	});
 
-	describe('When Alice shares a live location', function() {
+	describe('When Alice shares a live location', function () {
 		before('start sharing live location', async () => {
 			let loc = {
 				lat: 52.363811,
@@ -135,7 +135,7 @@ describe('Location sharing', function() {
 			let notifiedMessages = [];
 
 			await channel.watch();
-			channel.on('message.updated', event => {
+			channel.on('message.updated', (event) => {
 				notifiedMessages.push(event.message.id);
 			});
 
@@ -165,7 +165,7 @@ describe('Location sharing', function() {
 		});
 
 		it("can't update a live location with an invalid lon / lat / accuracy", async () => {
-			let checkInputError = async input => {
+			let checkInputError = async (input) => {
 				let error;
 
 				try {
@@ -249,7 +249,7 @@ describe('Location sharing', function() {
 			const updates = await client.updateLocation(locUpdate);
 			expect(updates.messages).to.not.be.undefined;
 			expect(updates.messages.length).to.be.greaterThan(0);
-			let updatedMsg = updates.messages.find(umsg => umsg.id === msg.message.id);
+			let updatedMsg = updates.messages.find((umsg) => umsg.id === msg.message.id);
 			expect(updatedMsg).to.not.be.undefined;
 			expect(updatedMsg.attachments.length).to.be.greaterThan(0);
 			expect(updatedMsg.attachments[0].location.lon).to.equal(51.0);
