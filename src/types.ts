@@ -1474,24 +1474,6 @@ export type User<UserType = UnknownType> = UserType & {
 
 export type TypingStartEvent = Event;
 
-export type UpdateLocationAPIResponse<
-  AttachmentType = UnknownType,
-  ChannelType = UnknownType,
-  CommandType extends string = LiteralStringForUnion,
-  MessageType = UnknownType,
-  ReactionType = UnknownType,
-  UserType = UnknownType
-> = APIResponse & {
-  messages: MessageResponse<
-    AttachmentType,
-    ChannelType,
-    CommandType,
-    MessageType,
-    ReactionType,
-    UserType
-  >[];
-};
-
 export type Location = {
   accuracy: number;
   lat: number;

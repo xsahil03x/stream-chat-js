@@ -1723,20 +1723,13 @@ export class Channel<
   /**
    * shareLocation - Send a message to this channel with a location attachment
    *
-   * @param location Location
+   * @param {Location} location
    *
    * @return {Promise<SendMessageAPIResponse<AttachmentType, ChannelType, CommandType, MessageType, ReactionType, UserType>>} The Server Response
    */
   shareLocation(location: Location) {
-    const message: Message = {
-      attachments: [
-        {
-          type: 'location',
-          location,
-        },
-      ],
-    };
-
-    return this.sendMessage(message);
+    return this.sendMessage({
+      attachments: [{ type: 'location', location }],
+    } as Message<AttachmentType, MessageType, UserType>);
   }
 }

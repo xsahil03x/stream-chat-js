@@ -72,7 +72,7 @@ import {
   UpdateChannelResponse,
   UpdateCommandOptions,
   UpdateCommandResponse,
-  UpdateLocationAPIResponse,
+  GetMultipleMessagesAPIResponse,
   UpdateMessageAPIResponse,
   UserFilters,
   UserOptions,
@@ -2120,13 +2120,13 @@ export class StreamChat<
   /**
    * updateLocation - Update location on all messages that currently contain a live location
    *
-   * @param location Location
+   * @param {Location} location
    *
-   * @return {Promise<UpdateLocationAPIResponse<AttachmentType, ChannelType, CommandType, MessageType, ReactionType, UserType>>} The Server Response
+   * @return {Promise<GetMultipleMessagesAPIResponse<AttachmentType, ChannelType, CommandType, MessageType, ReactionType, UserType>>} The Server Response
    */
   updateLocation(location: Location) {
     return this.patch<
-      UpdateLocationAPIResponse<
+      GetMultipleMessagesAPIResponse<
         AttachmentType,
         ChannelType,
         CommandType,
@@ -2134,20 +2134,17 @@ export class StreamChat<
         ReactionType,
         UserType
       >
-    >(`${this.baseURL}/location`, {
-      location,
-    });
+    >(`${this.baseURL}/location`, { location });
   }
 
   /**
    * stopLocationSharing - Stop location sharing. Updates location for the last time, on all messages that currently contain a live location
    *
-   * @param location Location
+   * @param {Location} location
    *
-   * @return {Promise<SendMessageAPIResponse<AttachmentType, ChannelType, CommandType, MessageType, ReactionType, UserType>>} The Server Response
+   * @return {Promise<GetMultipleMessagesAPIResponse<AttachmentType, ChannelType, CommandType, MessageType, ReactionType, UserType>>} The Server Response
    */
   stopLocationSharing(location: Location) {
-    location.live = false;
-    return this.updateLocation(location);
+    return this.updateLocation({ ...location, live: false });
   }
 }
