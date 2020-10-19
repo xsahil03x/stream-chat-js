@@ -1175,6 +1175,7 @@ export type Attachment<T = UnknownType> = T & {
   footer?: string;
   footer_icon?: string;
   image_url?: string;
+  location?: Location;
   og_scrape_url?: string;
   pretext?: string;
   text?: string;
@@ -1472,3 +1473,31 @@ export type User<UserType = UnknownType> = UserType & {
 };
 
 export type TypingStartEvent = Event;
+
+export type UpdateLocationAPIResponse<
+  AttachmentType = UnknownType,
+  ChannelType = UnknownType,
+  CommandType extends string = LiteralStringForUnion,
+  MessageType = UnknownType,
+  ReactionType = UnknownType,
+  UserType = UnknownType
+> = APIResponse & {
+  messages: MessageResponse<
+    AttachmentType,
+    ChannelType,
+    CommandType,
+    MessageType,
+    ReactionType,
+    UserType
+  >[];
+};
+
+export type Location = {
+  accuracy: number;
+  lat: number;
+  live: boolean;
+  lon: number;
+  created_at?: string;
+  expires_in_minutes?: number;
+  updated_at?: string;
+};
