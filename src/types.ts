@@ -1477,9 +1477,9 @@ export type TypingStartEvent = Event;
 export type Location = {
   accuracy: number;
   lat: number;
-  live: boolean;
   lon: number;
   created_at?: string;
   expires_in_minutes?: number;
+  live?: boolean;
   updated_at?: string;
 };

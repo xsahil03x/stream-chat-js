@@ -14,7 +14,9 @@ function equalLocationInAttachment(msg, loc) {
 	expect(msg.attachments[0].location.lat).to.equal(loc.lat);
 	expect(msg.attachments[0].location.lon).to.equal(loc.lon);
 	expect(msg.attachments[0].location.accuracy).to.equal(loc.accuracy);
-	expect(msg.attachments[0].location.live).to.equal(loc.live);
+	expect(msg.attachments[0].location.live).to.equal(
+		loc.live !== undefined ? loc.live : false,
+	);
 }
 
 describe('Location sharing', function () {
@@ -48,7 +50,6 @@ describe('Location sharing', function () {
 				lat: 52.363811,
 				lon: 4.88228,
 				accuracy: 20,
-				live: false,
 			};
 
 			let response = await channel.shareLocation(loc);
@@ -81,14 +82,14 @@ describe('Location sharing', function () {
 					live: false,
 				};
 
-				const response = await client.stopLocationSharing(loc);
+				const response = await client.stopLiveLocation(loc);
 				expect(response.messages).to.have.lengthOf(1);
 				equalLocationInAttachment(response.messages[0], loc);
 
 				// Make sure location updates can't be sent any longer
 				let error;
 				try {
-					await client.updateLocation({
+					await client.updateLiveLocation({
 						lat: 49.363811,
 						lon: 2.88228,
 						accuracy: 12,
@@ -115,7 +116,7 @@ describe('Location sharing', function () {
 				live: true,
 			};
 
-			const response = await client.updateLocation(loc);
+			const response = await client.updateLiveLocation(loc);
 			expect(response.messages).to.have.lengthOf(1);
 			equalLocationInAttachment(response.messages[0], loc);
 
@@ -126,7 +127,7 @@ describe('Location sharing', function () {
 				live: true,
 			};
 
-			const response2 = await client.updateLocation(loc2);
+			const response2 = await client.updateLiveLocation(loc2);
 			expect(response2.messages).to.have.lengthOf(1);
 			equalLocationInAttachment(response2.messages[0], loc2);
 		});
@@ -146,7 +147,7 @@ describe('Location sharing', function () {
 				live: true,
 			};
 
-			const response = await client.updateLocation(loc);
+			const response = await client.updateLiveLocation(loc);
 			expect(response.messages).to.have.lengthOf(1);
 			equalLocationInAttachment(response.messages[0], loc);
 			expect(notifiedMessages).to.contain(response.messages[0].id);
@@ -158,7 +159,7 @@ describe('Location sharing', function () {
 				live: true,
 			};
 
-			const response2 = await client.updateLocation(loc2);
+			const response2 = await client.updateLiveLocation(loc2);
 			expect(response2.messages).to.have.lengthOf(1);
 			equalLocationInAttachment(response2.messages[0], loc2);
 			expect(notifiedMessages).to.contain(response2.messages[0].id);
@@ -169,7 +170,7 @@ describe('Location sharing', function () {
 				let error;
 
 				try {
-					await client.updateLocation(input);
+					await client.updateLiveLocation(input);
 				} catch (e) {
 					error = e;
 				}
@@ -209,7 +210,7 @@ describe('Location sharing', function () {
 			let error;
 
 			try {
-				await serverClient.updateLocation({
+				await serverClient.updateLiveLocation({
 					lat: 51.92291,
 					lon: 4.47059,
 					accuracy: 20,
@@ -246,7 +247,7 @@ describe('Location sharing', function () {
 
 			await sleep(200);
 
-			const updates = await client.updateLocation(locUpdate);
+			const updates = await client.updateLiveLocation(locUpdate);
 			expect(updates.messages).to.not.be.undefined;
 			expect(updates.messages.length).to.be.greaterThan(0);
 			let updatedMsg = updates.messages.find((umsg) => umsg.id === msg.message.id);

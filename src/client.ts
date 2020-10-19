@@ -2124,7 +2124,7 @@ export class StreamChat<
    *
    * @return {Promise<GetMultipleMessagesAPIResponse<AttachmentType, ChannelType, CommandType, MessageType, ReactionType, UserType>>} The Server Response
    */
-  updateLocation(location: Location) {
+  updateLiveLocation(location: Location) {
     return this.patch<
       GetMultipleMessagesAPIResponse<
         AttachmentType,
@@ -2144,7 +2144,7 @@ export class StreamChat<
    *
    * @return {Promise<GetMultipleMessagesAPIResponse<AttachmentType, ChannelType, CommandType, MessageType, ReactionType, UserType>>} The Server Response
    */
-  stopLocationSharing(location: Location) {
-    return this.updateLocation({ ...location, live: false });
+  stopLiveLocation(location: Location) {
+    return this.updateLiveLocation({ ...location, live: false });
   }
 }
