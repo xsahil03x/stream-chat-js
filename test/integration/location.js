@@ -87,24 +87,17 @@ describe('Location sharing', function () {
 				equalLocationInAttachment(response.messages[0], loc);
 
 				// Make sure location updates can't be sent any longer
-				let error;
-				try {
-					await client.updateLiveLocation({
-						lat: 49.363811,
-						lon: 2.88228,
-						accuracy: 12,
-						live: false,
-					});
-				} catch (e) {
-					error = e;
-				}
+				const newResponse = await client.updateLiveLocation({
+					lat: 49.363811,
+					lon: 2.88228,
+					accuracy: 12,
+					live: false,
+				});
 
-				expect(error).to.not.be.undefined;
-				expect(error.response).to.not.be.undefined;
-				expect(error.response.status).to.equal(400);
-				expect(error.response.data.message).to.equal(
-					'UpdateLocation failed with error: "you currently don\'t have messages with live location attachments"',
-				);
+				expect(newResponse).to.not.be.undefined;
+				expect(newResponse.messages).to.not.be.undefined;
+				expect(newResponse.messages.length).to.equal(0);
+				expect(newResponse.num_updated).to.equal(0);
 			},
 		);
 
