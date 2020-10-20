@@ -2136,15 +2136,4 @@ export class StreamChat<
       >
     >(`${this.baseURL}/location`, { location });
   }
-
-  /**
-   * stopLocationSharing - Stop location sharing. Updates location for the last time, on all messages that currently contain a live location
-   *
-   * @param {Location} location
-   *
-   * @return {Promise<GetMultipleMessagesAPIResponse<AttachmentType, ChannelType, CommandType, MessageType, ReactionType, UserType>>} The Server Response
-   */
-  stopLiveLocation(location: Location) {
-    return this.updateLiveLocation({ ...location, live: false });
-  }
 }

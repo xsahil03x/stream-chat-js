@@ -1732,4 +1732,25 @@ export class Channel<
       attachments: [{ type: 'location', location }],
     } as Message<AttachmentType, MessageType, UserType>);
   }
+
+  /**
+   * stopLiveLocation - Stop location sharing for this channel
+   *
+   * @return {Promise<GetMultipleMessagesAPIResponse<AttachmentType, ChannelType, CommandType, MessageType, ReactionType, UserType>>} The Server Response
+   */
+  stopLiveLocation() {
+    return this._client.patch<
+      GetMultipleMessagesAPIResponse<
+        AttachmentType,
+        ChannelType,
+        CommandType,
+        MessageType,
+        ReactionType,
+        UserType
+      >
+    >(`${this._client.baseURL}/location`, {
+      channel_cid: this.cid,
+      location: { live: false },
+    });
+  }
 }

@@ -4,6 +4,7 @@ import chai from 'chai';
 const expect = chai.expect;
 
 const locationChan = 'location-sharing-channel';
+const locationChan2 = 'location-sharing-channel-2';
 
 function equalLocationInAttachment(msg, loc) {
 	expect(msg).not.to.be.empty;
@@ -20,7 +21,7 @@ function equalLocationInAttachment(msg, loc) {
 }
 
 describe('Location sharing', function () {
-	let alice, bob, client, bobClient, channel, serverClient;
+	let alice, bob, client, bobClient, channel, channel2, serverClient;
 
 	before(async () => {
 		alice = { id: `alice-${uuidv4()}`, role: 'admin' };
@@ -37,7 +38,12 @@ describe('Location sharing', function () {
 			members: [alice.id, bob.id],
 		});
 
+		channel2 = await client.channel('messaging', locationChan2, {
+			members: [alice.id, bob.id],
+		});
+
 		await channel.create();
+		await channel2.create();
 	});
 
 	after(async () => {
@@ -74,30 +80,71 @@ describe('Location sharing', function () {
 		after(
 			"stop sharing live location and make sure updates can't be sent any longer",
 			async () => {
-				// Stop sharing
-				let loc = {
-					lat: 50.363811,
-					lon: 2.88228,
-					accuracy: 10,
-					live: false,
-				};
-
-				const response = await client.stopLiveLocation(loc);
-				expect(response.messages).to.have.lengthOf(1);
-				equalLocationInAttachment(response.messages[0], loc);
-
-				// Make sure location updates can't be sent any longer
-				const newResponse = await client.updateLiveLocation({
-					lat: 49.363811,
-					lon: 2.88228,
-					accuracy: 12,
-					live: false,
+				// Add a live location in channel2
+				const shareLocationResponse = await channel2.shareLocation({
+					lon: 50.0,
+					lat: 50.0,
+					accuracy: 50,
+					live: true,
+					expires_in_minutes: 20,
 				});
 
-				expect(newResponse).to.not.be.undefined;
-				expect(newResponse.messages).to.not.be.undefined;
-				expect(newResponse.messages.length).to.equal(0);
-				expect(newResponse.num_updated).to.equal(0);
+				// Stop live location in channel1
+				const stopLiveLocationResponse = await channel.stopLiveLocation();
+				expect(stopLiveLocationResponse.messages).to.have.lengthOf(2);
+				expect(stopLiveLocationResponse.num_updated).to.equal(1);
+
+				// Make sure location updates are only sent to channel2, since we only stopped sharing to channel 1
+				const updateLiveLocationChannel2Response = await client.updateLiveLocation(
+					{
+						lat: 49.363811,
+						lon: 2.88228,
+						accuracy: 12,
+						live: true,
+					},
+				);
+
+				expect(updateLiveLocationChannel2Response).to.not.be.undefined;
+				expect(updateLiveLocationChannel2Response.messages).to.not.be.undefined;
+				expect(updateLiveLocationChannel2Response.messages.length).to.equal(1);
+				expect(updateLiveLocationChannel2Response.num_updated).to.equal(1);
+				expect(updateLiveLocationChannel2Response.messages[0].id).to.equal(
+					shareLocationResponse.message.id,
+				);
+				expect(updateLiveLocationChannel2Response.messages[0].attachments).to.not
+					.be.undefined;
+				expect(
+					updateLiveLocationChannel2Response.messages[0].attachments.length,
+				).to.equal(1);
+				expect(
+					updateLiveLocationChannel2Response.messages[0].attachments[0].location
+						.lat,
+				).to.equal(49.363811);
+
+				// Stop sharing on channel 2 too
+				const stopLiveLocationChannel2Response = await channel2.stopLiveLocation();
+				expect(stopLiveLocationChannel2Response.messages).to.have.lengthOf(1);
+				expect(stopLiveLocationChannel2Response.num_updated).to.equal(1);
+
+				// Now ensure that we can't send updates anymore
+				const updateLiveLocationChannel2AfterStopResponse = await client.updateLiveLocation(
+					{
+						lat: 40.363811,
+						lon: 2.88228,
+						accuracy: 12,
+						live: true,
+					},
+				);
+
+				expect(updateLiveLocationChannel2AfterStopResponse).to.not.be.undefined;
+				expect(updateLiveLocationChannel2AfterStopResponse.messages).to.not.be
+					.undefined;
+				expect(
+					updateLiveLocationChannel2AfterStopResponse.messages.length,
+				).to.equal(0);
+				expect(updateLiveLocationChannel2AfterStopResponse.num_updated).to.equal(
+					0,
+				);
 			},
 		);
 

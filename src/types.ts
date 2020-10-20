@@ -1475,11 +1475,11 @@ export type User<UserType = UnknownType> = UserType & {
 export type TypingStartEvent = Event;
 
 export type Location = {
-  accuracy: number;
-  lat: number;
-  lon: number;
-  created_at?: string;
+  accuracy?: number;
+  expires_at?: string;
   expires_in_minutes?: number;
+  lat?: number;
   live?: boolean;
+  lon?: number;
   updated_at?: string;
 };
