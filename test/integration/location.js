@@ -58,7 +58,8 @@ describe('Location sharing', function () {
 				accuracy: 20,
 			};
 
-			let response = await channel.shareLocation(loc);
+			let response = await channel.shareLocation(loc, 'static location');
+			expect(response.message.text).to.equal('static location');
 			equalLocationInAttachment(response.message, loc);
 		});
 	});
@@ -73,7 +74,8 @@ describe('Location sharing', function () {
 				expires_in_minutes: 15,
 			};
 
-			const response = await channel.shareLocation(loc);
+			const response = await channel.shareLocation(loc, 'live location!');
+			expect(response.message.text).to.equal('live location!');
 			equalLocationInAttachment(response.message, loc);
 		});
 
@@ -81,13 +83,19 @@ describe('Location sharing', function () {
 			"stop sharing live location and make sure updates can't be sent any longer",
 			async () => {
 				// Add a live location in channel2
-				const shareLocationResponse = await channel2.shareLocation({
-					lon: 50.0,
-					lat: 50.0,
-					accuracy: 50,
-					live: true,
-					expires_in_minutes: 20,
-				});
+				const shareLocationResponse = await channel2.shareLocation(
+					{
+						lon: 50.0,
+						lat: 50.0,
+						accuracy: 50,
+						live: true,
+						expires_in_minutes: 20,
+					},
+					'live location for channel 2',
+				);
+				expect(shareLocationResponse.message.text).to.equal(
+					'live location for channel 2',
+				);
 
 				// Stop live location in channel1
 				const stopLiveLocationResponse = await channel.stopLiveLocation();
@@ -277,7 +285,11 @@ describe('Location sharing', function () {
 				expires_in_minutes: 0,
 			};
 
-			const msg = await channel.shareLocation(locInstantlyExpired);
+			const msg = await channel.shareLocation(
+				locInstantlyExpired,
+				'instantly expires',
+			);
+			expect(msg.message.text).to.equal('instantly expires');
 			let locUpdate = {
 				lat: 51.1,
 				lon: 51.1,
