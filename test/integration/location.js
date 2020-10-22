@@ -82,77 +82,23 @@ describe('Location sharing', function () {
 		after(
 			"stop sharing live location and make sure updates can't be sent any longer",
 			async () => {
-				// Add a live location in channel2
-				const shareLocationResponse = await channel2.shareLocation(
-					{
-						lon: 50.0,
-						lat: 50.0,
-						accuracy: 50,
-						live: true,
-						expires_in_minutes: 20,
-					},
-					'live location for channel 2',
-				);
-				expect(shareLocationResponse.message.text).to.equal(
-					'live location for channel 2',
-				);
-
-				// Stop live location in channel1
-				const stopLiveLocationResponse = await channel.stopLiveLocation();
-				expect(stopLiveLocationResponse.messages).to.have.lengthOf(2);
-				expect(stopLiveLocationResponse.num_updated).to.equal(1);
-
-				// Make sure location updates are only sent to channel2, since we only stopped sharing to channel 1
-				const updateLiveLocationChannel2Response = await client.updateLiveLocation(
-					{
-						lat: 49.363811,
-						lon: 2.88228,
-						accuracy: 12,
-						live: true,
-					},
-				);
-
-				expect(updateLiveLocationChannel2Response).to.not.be.undefined;
-				expect(updateLiveLocationChannel2Response.messages).to.not.be.undefined;
-				expect(updateLiveLocationChannel2Response.messages.length).to.equal(1);
-				expect(updateLiveLocationChannel2Response.num_updated).to.equal(1);
-				expect(updateLiveLocationChannel2Response.messages[0].id).to.equal(
-					shareLocationResponse.message.id,
-				);
-				expect(updateLiveLocationChannel2Response.messages[0].attachments).to.not
-					.be.undefined;
-				expect(
-					updateLiveLocationChannel2Response.messages[0].attachments.length,
-				).to.equal(1);
-				expect(
-					updateLiveLocationChannel2Response.messages[0].attachments[0].location
-						.lat,
-				).to.equal(49.363811);
-
-				// Stop sharing on channel 2 too
-				const stopLiveLocationChannel2Response = await channel2.stopLiveLocation();
-				expect(stopLiveLocationChannel2Response.messages).to.have.lengthOf(1);
-				expect(stopLiveLocationChannel2Response.num_updated).to.equal(1);
+				// Stop sharing on channel 1
+				const stopRes = await channel.stopLiveLocation();
+				expect(stopRes.messages).to.have.lengthOf(1);
+				expect(stopRes.num_updated).to.equal(1);
 
 				// Now ensure that we can't send updates anymore
-				const updateLiveLocationChannel2AfterStopResponse = await client.updateLiveLocation(
-					{
-						lat: 40.363811,
-						lon: 2.88228,
-						accuracy: 12,
-						live: true,
-					},
-				);
+				const updateRes = await client.updateLiveLocation({
+					lat: 40.363811,
+					lon: 2.88228,
+					accuracy: 12,
+					live: true,
+				});
 
-				expect(updateLiveLocationChannel2AfterStopResponse).to.not.be.undefined;
-				expect(updateLiveLocationChannel2AfterStopResponse.messages).to.not.be
-					.undefined;
-				expect(
-					updateLiveLocationChannel2AfterStopResponse.messages.length,
-				).to.equal(0);
-				expect(updateLiveLocationChannel2AfterStopResponse.num_updated).to.equal(
-					0,
-				);
+				expect(updateRes).to.not.be.undefined;
+				expect(updateRes.messages).to.not.be.undefined;
+				expect(updateRes.messages.length).to.equal(0);
+				expect(updateRes.num_updated).to.equal(0);
 			},
 		);
 
@@ -297,7 +243,7 @@ describe('Location sharing', function () {
 				live: true,
 			};
 
-			await sleep(200);
+			await sleep(50);
 
 			const updates = await client.updateLiveLocation(locUpdate);
 			expect(updates.messages).to.not.be.undefined;
@@ -308,6 +254,44 @@ describe('Location sharing', function () {
 			expect(updatedMsg.attachments[0].location.lon).to.equal(51.0);
 			expect(updatedMsg.attachments[0].location.lat).to.equal(51.92291);
 			expect(updatedMsg.attachments[0].location.live).to.be.false;
+		});
+
+		it('can stop sharing messages in a single channel', async () => {
+			// Add a live location in channel2
+			const res = await channel2.shareLocation(
+				{
+					lon: 50.0,
+					lat: 50.0,
+					accuracy: 50,
+					live: true,
+					expires_in_minutes: 20,
+				},
+				'live location for channel 2',
+			);
+			expect(res.message.text).to.equal('live location for channel 2');
+
+			// Stop live location in channel2
+			const stopRes = await channel2.stopLiveLocation();
+			expect(stopRes.messages).to.have.lengthOf(1);
+			expect(stopRes.num_updated).to.equal(1);
+
+			// Make sure location updates are only sent to channel1,
+			// since we only stopped sharing to channel 2
+			const updateRes = await client.updateLiveLocation({
+				lat: 49.363811,
+				lon: 2.88228,
+				accuracy: 12,
+				live: true,
+			});
+
+			expect(updateRes).to.not.be.undefined;
+			expect(updateRes.messages).to.not.be.undefined;
+			expect(updateRes.messages.length).to.equal(1);
+			expect(updateRes.num_updated).to.equal(1);
+			expect(updateRes.messages[0].id).to.not.equal(res.message.id);
+			expect(updateRes.messages[0].attachments).to.not.be.undefined;
+			expect(updateRes.messages[0].attachments.length).to.equal(1);
+			expect(updateRes.messages[0].attachments[0].location.lat).to.equal(49.363811);
 		});
 	});
 });
