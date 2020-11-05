@@ -1638,6 +1638,7 @@ export class Channel<
         s.removeLiveLocation(event.user);
         break;
       case 'location.updated':
+        s.updateLiveLocation(event.user, event.location);
         break;
       default:
     }

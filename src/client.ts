@@ -2152,13 +2152,14 @@ export class StreamChat<
   }
 
   /**
-   * updateLocation - Update location on the user
+   * updateLiveLocation - Update live location of the user, for all channels it's shared to
    *
    * @param {Location} location
-   *
-   * @return {Promise<GetMultipleMessagesAPIResponse<AttachmentType, ChannelType, CommandType, MessageType, ReactionType, UserType>>} The Server Response
+   * @returns {Promise<APIResponse>}
    */
-  updateLiveLocation(location: Location) {
-    return this.patch<APIResponse>(`${this.baseURL}/location`, { location });
+  async updateLiveLocation(location: Location) {
+    return await this.post<APIResponse>(`${this.baseURL}/update_live_location`, {
+      location,
+    });
   }
 }
