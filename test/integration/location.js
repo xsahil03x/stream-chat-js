@@ -23,7 +23,9 @@ const equalLocations = (location1, location2) => {
 const eventPromise = (channel, event) => {
 	return new Promise((success) => {
 		channel.on(event, () => {
-			success();
+			sleep(20).then(() => {
+				success();
+			});
 		});
 	});
 };
@@ -254,7 +256,7 @@ describe('Location sharing', function () {
 
 			// Ruud and Driver2 update their location 10 times during the trip
 			let ruudLiveLocation, driver2Location;
-			for (let i = 0; i < 10; i++) {
+			for (let i = 0; i < 5; i++) {
 				let ruudUpdatedLocation = eventPromise(
 					driver2Channel,
 					'location.updated',
@@ -262,7 +264,6 @@ describe('Location sharing', function () {
 
 				ruudLiveLocation = { lon: 40.0 + i, lat: 40.0 + i, accuracy: 5 + i };
 				await ruudClient.updateLiveLocation(ruudLiveLocation);
-
 				await ruudUpdatedLocation;
 
 				let locationInRuudsState = ruudChannel.state.live_locations[ruud.id];
@@ -280,7 +281,6 @@ describe('Location sharing', function () {
 				);
 				driver2Location = { lon: 60.0 + i, lat: 60.0 + i, accuracy: 25 + i };
 				await driver2Client.updateLiveLocation(driver2Location);
-
 				await driver2UpdatedLocation;
 
 				let driver2LocationInRuudsState =
@@ -610,9 +610,24 @@ describe('Location sharing', function () {
 
 			// Update location should detect the channel access is expired
 			let update = ruudClient.updateLiveLocation(ruudsLocation);
+			let ruudChannelWithFriendStopped = eventPromise(
+				ruudChannelWithFriend,
+				'location.sharing_stopped',
+			);
+			let friendChannelWithRuudStopped = eventPromise(
+				friendChannelWithRuud,
+				'location.sharing_stopped',
+			);
+
 			let ruudsState = ruudChannelWithFriend.watch();
 			let friendState = friendChannelWithRuud.watch();
-			let out = await Promise.all([update, ruudsState, friendState]);
+			let out = await Promise.all([
+				update,
+				ruudsState,
+				friendState,
+				ruudChannelWithFriendStopped,
+				friendChannelWithRuudStopped,
+			]);
 			expect(out[1].live_locations).to.be.null;
 			expect(out[2].live_locations).to.be.null;
 		});
