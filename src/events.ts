@@ -37,6 +37,9 @@ export const EVENT_MAP = {
   'user.updated': true,
   'user.watching.start': true,
   'user.watching.stop': true,
+  'location.updated': true,
+  'location.sharing_started': true,
+  'location.sharing_stopped': true,
 
   // local events
   'connection.changed': true,

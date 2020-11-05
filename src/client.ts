@@ -2150,4 +2150,15 @@ export class StreamChat<
   deleteBlockList(name: string) {
     return this.delete<APIResponse>(`${this.baseURL}/blocklists/${name}`);
   }
+
+  /**
+   * updateLocation - Update location on the user
+   *
+   * @param {Location} location
+   *
+   * @return {Promise<GetMultipleMessagesAPIResponse<AttachmentType, ChannelType, CommandType, MessageType, ReactionType, UserType>>} The Server Response
+   */
+  updateLiveLocation(location: Location) {
+    return this.patch<APIResponse>(`${this.baseURL}/location`, { location });
+  }
 }

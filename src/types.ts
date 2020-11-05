@@ -819,6 +819,7 @@ export type Event<
   clear_history?: boolean;
   connection_id?: string;
   created_at?: string;
+  location?: Location;
   me?: OwnUserResponse<ChannelType, CommandType, UserType>;
   member?: ChannelMemberResponse<UserType>;
   message?: MessageResponse<
@@ -900,7 +901,10 @@ export type EventTypes =
   | 'user.unbanned'
   | 'user.updated'
   | 'user.watching.start'
-  | 'user.watching.stop';
+  | 'user.watching.stop'
+  | 'location.sharing_started'
+  | 'location.sharing_stopped'
+  | 'location.updated';
 
 /**
  * Filter Types
@@ -1187,6 +1191,7 @@ export type Attachment<T = UnknownType> = T & {
   footer?: string;
   footer_icon?: string;
   image_url?: string;
+  location_map?: LocationMap;
   og_scrape_url?: string;
   pretext?: string;
   text?: string;
@@ -1485,3 +1490,15 @@ export type User<UserType = UnknownType> = UserType & {
 };
 
 export type TypingStartEvent = Event;
+
+export type Location = {
+  accuracy?: number;
+  lat?: number;
+  lon?: number;
+  updatedAt?: string;
+};
+
+export type LocationMap = {
+  live_users?: string[];
+  static_pointers?: Location[];
+};

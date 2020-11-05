@@ -5,9 +5,11 @@ import {
   ChannelMembership,
   Event,
   LiteralStringForUnion,
+  Location,
   MessageResponse,
   ReactionResponse,
   UnknownType,
+  User,
   UserResponse,
 } from './types';
 
@@ -87,6 +89,9 @@ export class ChannelState<
   unreadCount: number;
   membership: Immutable.ImmutableObject<ChannelMembership<UserType>>;
   last_message_at: Date | null;
+  live_locations: {
+    [key: string]: Location;
+  };
 
   constructor(
     channel: Channel<
@@ -150,6 +155,7 @@ export class ChannelState<
       channel?.state?.last_message_at != null
         ? new Date(channel.state.last_message_at)
         : null;
+    this.live_locations = {};
   }
 
   /**
@@ -577,6 +583,18 @@ export class ChannelState<
     const filteredMessages = this.messages.filter((message) => message.type !== 'error');
 
     this.messages = filteredMessages;
+  }
+
+  updateLiveLocation(user: User | undefined, location: Location | undefined) {
+    if (user && location) {
+      this.live_locations[user.id] = location;
+    }
+  }
+
+  removeLiveLocation(user: User | undefined) {
+    if (user) {
+      delete this.live_locations[user.id];
+    }
   }
 
   /**

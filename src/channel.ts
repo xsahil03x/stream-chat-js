@@ -1345,6 +1345,38 @@ export class Channel<
   }
 
   /**
+   * shareLiveLocation - Shares live location with channel
+   *
+   * @param {Location} location
+   * @param {number} minutes
+   * @returns {Promise<APIResponse>}
+   */
+  async shareLiveLocation(location: Location, minutes: number) {
+    return await this.getClient().post<APIResponse>(
+      `${this.getClient().baseURL}/share_live_location`,
+      {
+        location,
+        minutes,
+        channel_cid: this.cid,
+      },
+    );
+  }
+
+  /**
+   * stopLiveLocation - Stop sharing live location with channel
+   *
+   * @returns {Promise<APIResponse>}
+   */
+  async stopLiveLocation() {
+    return await this.getClient().post<APIResponse>(
+      `${this.getClient().baseURL}/stop_live_location`,
+      {
+        channel_cid: this.cid,
+      },
+    );
+  }
+
+  /**
    * on - Listen to events on this channel.
    *
    * channel.on('message.new', event => {console.log("my new message", event, channel.state.messages)})
@@ -1598,6 +1630,14 @@ export class Channel<
         if (event.clear_history) {
           s.clearMessages();
         }
+        break;
+      case 'location.sharing_started':
+        s.updateLiveLocation(event.user, event.location);
+        break;
+      case 'location.sharing_stopped':
+        s.removeLiveLocation(event.user);
+        break;
+      case 'location.updated':
         break;
       default:
     }
