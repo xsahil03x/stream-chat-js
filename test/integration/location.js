@@ -67,10 +67,10 @@ describe('Location sharing', function () {
 
 		it('Ruud shares static location with channel', async () => {
 			let static_location = { lon: 50.0, lat: 51.0, accuracy: 20 };
-			let location_map = { static_pointers: [static_location] };
+			let locations = { static: [static_location] };
 			let msg = {
 				text: "here's my location, please pick me up",
-				attachments: [{ location_map }],
+				attachments: [{ locations }],
 			};
 
 			// Ruud sends message with location map to channel
@@ -80,12 +80,11 @@ describe('Location sharing', function () {
 			expect(res.message.attachments).to.not.be.undefined;
 			expect(res.message.attachments.length).to.be.greaterThan(0);
 
-			let resLocationMap = res.message.attachments[0].location_map;
-			expect(resLocationMap).to.not.be.undefined;
-			expect(resLocationMap.static_pointers).to.not.be.undefined;
-			expect(resLocationMap.static_pointers.length).to.be.greaterThan(0);
-			equalLocations(resLocationMap.static_pointers[0], static_location);
-
+			let resLocations = res.message.attachments[0].locations;
+			expect(resLocations).to.not.be.undefined;
+			expect(resLocations.static).to.not.be.undefined;
+			expect(resLocations.static.length).to.be.greaterThan(0);
+			equalLocations(resLocations.static[0], static_location);
 			messageWithLocationMap = res.message;
 		});
 
@@ -100,24 +99,24 @@ describe('Location sharing', function () {
 				'messaging',
 				driveRequestChannelID,
 			);
+			await driverChannel.watch();
+
 			const ruudChannel = ruudClient.channel('messaging', driveRequestChannelID);
 			await ruudChannel.watch();
 
+			// Driver shares live location
+			let live_location = { accuracy: 20, lat: 51.0, lon: 50.0 };
+			let driverShareLocation = driverChannel.shareLiveLocation(live_location, 15);
 			let driverStartedSharing = eventPromise(
 				ruudChannel,
 				'location.sharing_started',
 			);
 
-			// Driver shares live location
-			let live_location = { accuracy: 20, lat: 51.0, lon: 50.0 };
-			driverChannel.shareLiveLocation(live_location, 15).then((res) => {
-				expect(res.location).to.not.be.undefined;
-				expect(res.location.updated_at).to.not.be.undefined;
-				equalLocations(res.location, live_location);
-			});
-
 			// Wait for ruud's channel to receive notice that the driver started sharing the location
-			await driverStartedSharing;
+			let out = await Promise.all([driverStartedSharing, driverShareLocation]);
+			expect(out[1].location).to.not.be.undefined;
+			expect(out[1].location.updated_at).to.not.be.undefined;
+			equalLocations(out[1].location, live_location);
 
 			let driverLocation = ruudChannel.state.live_locations[driver.id];
 			expect(driverLocation).to.not.be.undefined;
@@ -125,7 +124,9 @@ describe('Location sharing', function () {
 			equalLocations(driverLocation, live_location);
 
 			// Add the live location to the message with the locationMap
-			messageWithLocationMap.attachments[0].location_map.live_users.push(driver.id);
+			messageWithLocationMap.attachments[0].locations.live.push({
+				user_id: driver.id,
+			});
 			const res = await serverClient.updateMessage({
 				...messageWithLocationMap,
 				user_id: ruud.id,
@@ -134,12 +135,12 @@ describe('Location sharing', function () {
 			expect(res.message).to.not.be.undefined;
 			expect(res.message.attachments).to.not.be.undefined;
 			expect(res.message.attachments.length).to.be.greaterThan(0);
-			let resLocationMap = res.message.attachments[0].location_map;
-			expect(resLocationMap.live_users).to.not.be.undefined;
-			expect(resLocationMap.live_users.length).to.equal(1);
-			expect(resLocationMap.live_users[0]).to.equal(driver.id);
-			expect(resLocationMap.static_pointers).to.not.be.undefined;
-			expect(resLocationMap.static_pointers.length).to.equal(1);
+			let resLocations = res.message.attachments[0].locations;
+			expect(resLocations.live).to.not.be.undefined;
+			expect(resLocations.live.length).to.equal(1);
+			expect(resLocations.live[0].user_id).to.equal(driver.id);
+			expect(resLocations.static).to.not.be.undefined;
+			expect(resLocations.static.length).to.equal(1);
 		});
 
 		it('Ride is cancelled, driver stops sharing location', async () => {
@@ -633,12 +634,12 @@ describe('Location sharing', function () {
 		});
 
 		it('Ruud decides to share a map with a static location and share his live location in a message with friend2', async () => {
-			let static_pointers = [{ lon: 50.0, lat: 51.0, accuracy: 20 }];
-			let live_locations = [ruud.id];
-			let location_map = { static_pointers, live_locations };
+			let static_locations = [{ lon: 50.0, lat: 51.0, accuracy: 20 }];
+			let live_locations = [{ user_id: ruud.id }];
+			let locations = { static: static_locations, live_locations };
 			let msg = {
 				text: "Hey I'm going to the mall, and I'm currently here",
-				attachments: [{ location_map }],
+				attachments: [{ locations }],
 			};
 
 			let send = ruudChannelWithFriend2.sendMessage(msg);
