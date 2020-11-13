@@ -1353,7 +1353,7 @@ export class Channel<
    */
   async shareLiveLocation(location: Location, minutes: number) {
     return await this.getClient().post<APIResponse>(
-      `${this.getClient().baseURL}/share_live_location`,
+      `${this.getClient().baseURL}/location/share`,
       {
         location,
         minutes,
@@ -1369,7 +1369,7 @@ export class Channel<
    */
   async stopLiveLocation() {
     return await this.getClient().post<APIResponse>(
-      `${this.getClient().baseURL}/stop_live_location`,
+      `${this.getClient().baseURL}/location/stop`,
       {
         channel_cid: this.cid,
       },

@@ -2158,7 +2158,7 @@ export class StreamChat<
    * @returns {Promise<APIResponse>}
    */
   async updateLiveLocation(location: Location) {
-    return await this.post<APIResponse>(`${this.baseURL}/update_live_location`, {
+    return await this.post<APIResponse>(`${this.baseURL}/location/update`, {
       location,
     });
   }
