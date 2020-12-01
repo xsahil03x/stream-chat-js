@@ -26,7 +26,7 @@ await chatClient2.setUser({ id: 'vishal' });
 
 In above code, you have actually created 2 different active websocket connections. Generally you should only have 1 websocket connection per chat instance per user. If you need access to `chatClient` at multiple places in single page (application), then its better to cache the `chatClient` in some service or higher order component and use that cached instance everywhere.
 
-**As a quick check, we strongly recommend you to do global search over codebase for `setUser`, and make sure you don't make more than one call to `setUser` function on single page.**
+**As a quick check, we strongly recommend you to do global search over codebase for `setUser`, and make sure you don't make more than one call to `setUser` function in a single application.**
 
 ### Call `chatClient.disconnect` to avoid orphan connections
 
