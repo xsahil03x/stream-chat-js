@@ -36,14 +36,14 @@ describe('Ratelimits v2', () => {
 
 		it('should contain ratelimit headers', async () => {
 			let firstLimit = 0;
-			for (let i = 1; i <= 10; i++) {
+			for (let i = 0; i < 10; i++) {
 				const [responseHeaders] = await Promise.all([
 					newResponseHeaderInterceptor(userClient),
 					userClient.queryChannels({ members: { $in: [userID] } }),
 				]);
 
 				const [reset, limit, remaining] = parseRatelimitHeaders(responseHeaders);
-				firstLimit = firstLimit ? firstLimit : limit;
+				firstLimit = firstLimit ? firstLimit : remaining;
 				expect(reset).to.be.greaterThan(1610000000);
 				expect(limit).to.be.greaterThan(50);
 				expect(remaining).to.equal(firstLimit - i);
