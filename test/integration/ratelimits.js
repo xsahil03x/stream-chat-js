@@ -43,7 +43,7 @@ describe('Ratelimits v2', () => {
 				]);
 
 				const [reset, limit, remaining] = parseRatelimitHeaders(responseHeaders);
-				firstLimit = (firstLimit ? firstLimit : limit);
+				firstLimit = firstLimit ? firstLimit : limit;
 				expect(reset).to.be.greaterThan(1610000000);
 				expect(limit).to.be.greaterThan(50);
 				expect(remaining).to.equal(firstLimit - i);
