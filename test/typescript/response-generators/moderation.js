@@ -2,7 +2,7 @@ const { v4: uuidv4 } = require('uuid');
 const utils = require('../utils');
 const { sleep } = require('../utils');
 
-async function cleanupBucketList(client, name) {
+async function cleanupBlockList(client, name) {
 	try {
 		await client.deleteBlockList(name); // cleanup for previous failed tests
 	} catch (err) {
@@ -40,7 +40,7 @@ async function shadowBan() {
 async function createBlockList() {
 	const name = 'FWord';
 	const client = utils.getTestClient(true);
-	await cleanupBucketList(client, name);
+	await cleanupBlockList(client, name);
 
 	const returnValue = await client.createBlockList({ name, words: ['F*!k'] });
 	await client.deleteBlockList(name);
@@ -70,11 +70,16 @@ async function deleteBlockList() {
 	const name = 'FWord';
 	const name2 = 'SWord';
 	const client = await utils.getTestClient(true);
-	await cleanupBucketList(client, name);
-	await cleanupBucketList(client, name2);
+	await cleanupBlockList(client, name);
+	await cleanupBlockList(client, name2);
 
-	await client.createBlockList({ name, words: ['F*!k'] });
-	await client.createBlockList({ name: name2, words: ['S!*t'] });
+	try {
+		await client.createBlockList({ name, words: ['F*!k'] });
+		await client.createBlockList({ name: name2, words: ['S!*t'] });
+	} catch (err) {
+		// in case the blocklist already exists
+		// do nothing
+	}
 
 	const returnValue = await client.deleteBlockList(name);
 	await client.deleteBlockList(name2);
@@ -93,7 +98,7 @@ async function deletePermission() {
 			},
 		},
 	});
-	await sleep(2500);
+	await sleep(5000);
 	return await authClient.deletePermission('test-delete-permission');
 }
 
@@ -183,7 +188,7 @@ async function flagUser() {
 async function getBlockList() {
 	const name = 'FWord';
 	const client = await utils.getTestClient(true);
-	await cleanupBucketList(client, name);
+	await cleanupBlockList(client, name);
 
 	await client.createBlockList({ name, words: ['F*!k'] });
 
@@ -352,7 +357,7 @@ async function unmuteUser() {
 async function updateBlockList() {
 	const name = 'FWord';
 	const client = await utils.getTestClient(true);
-	await cleanupBucketList(client, name);
+	await cleanupBlockList(client, name);
 
 	await client.createBlockList({ name, words: ['F*!k'] });
 

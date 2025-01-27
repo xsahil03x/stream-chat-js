@@ -1,20 +1,20 @@
 import { Secret } from 'jsonwebtoken';
 import { UserFromToken, JWTServerToken, JWTUserToken } from './signing';
 import { isFunction } from './utils';
-import { TokenOrProvider, UR, UserResponse } from './types';
+import { TokenOrProvider, ExtendableGenerics, DefaultGenerics, UserResponse } from './types';
 
 /**
  * TokenManager
  *
  * Handles all the operations around user token.
  */
-export class TokenManager<UserType extends UR = UR> {
+export class TokenManager<StreamChatGenerics extends ExtendableGenerics = DefaultGenerics> {
   loadTokenPromise: Promise<string> | null;
   type: 'static' | 'provider';
   secret?: Secret;
   token?: string;
   tokenProvider?: TokenOrProvider;
-  user?: UserResponse<UserType>;
+  user?: UserResponse<StreamChatGenerics>;
   /**
    * Constructor
    *
@@ -38,9 +38,9 @@ export class TokenManager<UserType extends UR = UR> {
    * Token provider should return a token string or a promise which resolves to string token.
    *
    * @param {TokenOrProvider} tokenOrProvider
-   * @param {UserResponse<UserType>} user
+   * @param {UserResponse<StreamChatGenerics>} user
    */
-  setTokenOrProvider = async (tokenOrProvider: TokenOrProvider, user: UserResponse<UserType>) => {
+  setTokenOrProvider = async (tokenOrProvider: TokenOrProvider, user: UserResponse<StreamChatGenerics>) => {
     this.validateToken(tokenOrProvider, user);
     this.user = user;
 
@@ -68,12 +68,14 @@ export class TokenManager<UserType extends UR = UR> {
    */
   reset = () => {
     this.token = undefined;
+    this.tokenProvider = undefined;
+    this.type = 'static';
     this.user = undefined;
     this.loadTokenPromise = null;
   };
 
   // Validates the user token.
-  validateToken = (tokenOrProvider: TokenOrProvider, user: UserResponse<UserType>) => {
+  validateToken = (tokenOrProvider: TokenOrProvider, user: UserResponse<StreamChatGenerics>) => {
     // allow empty token for anon user
     if (user && user.anon && !tokenOrProvider) return;
 
@@ -105,13 +107,17 @@ export class TokenManager<UserType extends UR = UR> {
   // In case of static token, it will simply resolve to static token.
   loadToken = () => {
     // eslint-disable-next-line no-async-promise-executor
-    this.loadTokenPromise = new Promise(async (resolve) => {
+    this.loadTokenPromise = new Promise(async (resolve, reject) => {
       if (this.type === 'static') {
         return resolve(this.token as string);
       }
 
       if (this.tokenProvider && typeof this.tokenProvider !== 'string') {
-        this.token = await this.tokenProvider();
+        try {
+          this.token = await this.tokenProvider();
+        } catch (e) {
+          return reject(new Error(`Call to tokenProvider failed with message: ${e}`));
+        }
         resolve(this.token);
       }
     });

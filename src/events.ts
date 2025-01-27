@@ -2,6 +2,7 @@ export const EVENT_MAP = {
   'channel.created': true,
   'channel.deleted': true,
   'channel.hidden': true,
+  'channel.kicked': true,
   'channel.muted': true,
   'channel.truncated': true,
   'channel.unmuted': true,
@@ -15,6 +16,7 @@ export const EVENT_MAP = {
   'message.new': true,
   'message.read': true,
   'message.updated': true,
+  'message.undeleted': true,
   'notification.added_to_channel': true,
   'notification.channel_deleted': true,
   'notification.channel_mutes_updated': true,
@@ -23,28 +25,39 @@ export const EVENT_MAP = {
   'notification.invite_rejected': true,
   'notification.invited': true,
   'notification.mark_read': true,
+  'notification.mark_unread': true,
   'notification.message_new': true,
   'notification.mutes_updated': true,
   'notification.removed_from_channel': true,
+  'notification.thread_message_new': true,
+  'poll.closed': true,
+  'poll.updated': true,
+  'poll.vote_casted': true,
+  'poll.vote_changed': true,
+  'poll.vote_removed': true,
   'reaction.deleted': true,
   'reaction.new': true,
   'reaction.updated': true,
+  'thread.updated': true,
   'typing.start': true,
   'typing.stop': true,
   'user.banned': true,
   'user.deleted': true,
   'user.presence.changed': true,
   'user.unbanned': true,
+  'user.unread_message_reminder': true,
   'user.updated': true,
   'user.watching.start': true,
   'user.watching.stop': true,
+  // AI events
+  'ai_indicator.update': true,
+  'ai_indicator.stop': true,
+  'ai_indicator.clear': true,
 
   // local events
+  'channels.queried': true,
   'connection.changed': true,
   'connection.recovered': true,
+  'transport.changed': true,
+  'capabilities.changed': true,
 };
-
-const IS_VALID_EVENT_MAP_TYPE = { ...EVENT_MAP, all: true };
-
-export const isValidEventType = (eventType: string): boolean =>
-  IS_VALID_EVENT_MAP_TYPE[eventType as keyof typeof IS_VALID_EVENT_MAP_TYPE] || false;
